@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuaderno Escolar de Matemáticas - 2° Secundaria</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --grid-line: #cbd5e1;
+            --margin-line: #f43f5e;
+            --primary: #4f46e5;
+            --secondary: #0ea5e9;
+            --notebook-bg: #fffbeb;
+            --text-color: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .notebook-page {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--notebook-bg);
+            background-image: 
+                linear-gradient(to right, rgba(244, 63, 94, 0.2) 2px, transparent 2px),
+                linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 100%, 100% 30px;
+            border: 3px solid #334155;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            padding: 2rem 2rem 3rem 3.5rem;
+            position: relative;
+        }
+
+        .notebook-page::before {
+            content: '';
+            position: absolute;
+            left: 45px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: var(--margin-line);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 3px dashed var(--primary);
+            padding-bottom: 1rem;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        header p {
+            color: #475569;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0.5rem 0 0;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            box-shadow: 2px 2px 0px var(--primary);
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px #1e1b4b;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.96);
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .section-card.active {
+            display: block;
+        }
+
+        h2 {
+            color: #1e1b4b;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.3rem;
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+
+        h3 {
+            color: #0369a1;
+            margin-top: 1.2rem;
+            font-size: 1.1rem;
+        }
+
+        .formula-box {
+            background: #e0f2fe;
+            border: 2px solid #0284c7;
+            padding: 0.8rem;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: #0369a1;
+        }
+
+        .example-box {
+            background: #fdf4ff;
+            border-left: 5px solid #d946ef;
+            padding: 0.8rem 1rem;
+            border-radius: 0 6px 6px 0;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin: 1.5rem auto;
+            height: 260px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .memory-card {
+            background: #4f46e5;
+            color: white;
+            height: 85px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0.4rem;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            user-select: none;
+            box-shadow: 3px 3px 0px #1e1b4b;
+        }
+
+        .memory-card.flipped {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid var(--primary);
+        }
+
+        .memory-card.matched {
+            background: #10b981;
+            color: white;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .quiz-question {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #1e1b4b;
+        }
+
+        .quiz-options button {
+            display: block;
+            width: 100%;
+            padding: 0.6rem;
+            margin: 0.4rem 0;
+            background: white;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            text-align: left;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .quiz-options button.correct {
+            background: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46;
+        }
+
+        .quiz-options button.incorrect {
+            background: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+
+        .score-display {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #64748b;
+            font-size: 0.8rem;
+            border-top: 2px dashed #cbd5e1;
+            padding-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="notebook-page">
+        <header>
+            <h1>Apuntes de Matemáticas II</h1>
+            <p>Segundo Año de Secundaria • Estadística, Gráficas y Porcentajes</p>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('tendencia')">Tendencia Central</button>
+            <button class="tab-btn" onclick="switchTab('rangos')">Rango</button>
+            <button class="tab-btn" onclick="switchTab('graficas')">Gráficas</button>
+            <button class="tab-btn" onclick="switchTab('juegos')">Memorama</button>
+            <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
+        </div>
+
+        <!-- TENDENCIA CENTRAL -->
+        <div id="tendencia" class="section-card active">
+            <h2>Medidas de Tendencia Central</h2>
+            <p>Valores que se ubican al centro de un conjunto de datos ordenados[span_1](start_span)[span_1](end_span).</p>
+            
+            <h3>1. Media ($\bar{x}$) o Promedio</h3>
+            <p>Suma de todos los datos dividida entre el número total de datos[span_2](start_span)[span_2](end_span).</p>
+            <div class="formula-box">
+                $\bar{x} = \frac{\text{Suma de los datos}}{\text{Total de datos}}$
+            </div>
+            <div class="example-box">
+                <strong>Ejemplo:</strong> Calificaciones: $8, 9, 7, 10, 8$<br>
+                • Suma = $42$<br>
+                • Total = $5$<br>
+                • $\bar{x} = \frac{42}{5} = 8.4$
+            </div>
+
+            <h3>2. Mediana ($\tilde{x}$)</h3>
+            <p>Dato que queda en el centro al ordenar de menor a mayor[span_3](start_span)[span_3](end_span).</p>
+            <div class="example-box">
+                <strong>Ejemplo ($6, 2, 4, 5, 3$):</strong><br>
+                1. Ordenar: $2, 3, \mathbf{4}, 5, 6$<br>
+                2. Mediana ($\tilde{x}$) = $4$
+            </div>
+
+            <h3>3. Moda ($\hat{x}$)</h3>
+            <p>El dato que más se repite (mayor frecuencia)[span_4](start_span)[span_4](end_span).</p>
+            <div class="example-box">
+                <strong>Ejemplo:</strong> Colores votados (azul, rosa, azul, verde, azul) $\rightarrow$ <strong>Moda ($\hat{x}$):</strong> Azul.
+            </div>
+        </div>
+
+        <!-- RANGO -->
+        <div id="rangos" class="section-card">
+            <h2>Rango ($R$)</h2>
+            <p>Mide la dispersión restando el dato menor al dato mayor ordenados[span_5](start_span)[span_5](end_span).</p>
+            <div class="formula-box">
+                $R = \text{Dato Mayor} - \text{Dato Menor}$
+            </div>
+            <div class="example-box">
+                <strong>Ejemplo:</strong> Edades ($11, 12, 13, 14, 15$)<br>
+                $R = 15 - 11 = 4$
+            </div>
+        </div>
+
+        <!-- GRÁFICAS -->
+        <div id="graficas" class="section-card">
+            <h2>Gráficas Estadísticas Representativas</h2>
+            <p>Organizan y visualizan datos[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span).</p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h3 style="text-align: center;">Gráfica de Barras</h3>
+                    <div class="chart-container"><canvas id="barChart"></canvas></div>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <h3 style="text-align: center;">Gráfica Circular</h3>
+                    <div class="chart-container"><canvas id="pieChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MINIJUEGO MEMORAMA -->
+        <div id="juegos" class="section-card">
+            <h2>Minijuego: Memorama Estadístico</h2>
+            <p>Encuentra las parejas relacionando conceptos y símbolos.</p>
+            <div class="memory-grid" id="memoryGrid"></div>
+            <div class="score-display" id="memoryScore">Parejas encontradas: 0 / 4</div>
+        </div>
+
+        <!-- QUIZ -->
+        <div id="quiz" class="section-card">
+            <h2>Reto Relámpago</h2>
+            <div id="quizContainer">
+                <div class="quiz-question" id="quizQuestion">Pregunta 1</div>
+                <div class="quiz-options" id="quizOptions"></div>
+                <div class="score-display" id="quizScore"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Cuaderno Digital Escolar • Matemáticas 2° Secundaria</p>
+        </footer>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.section-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            new Chart(document.getElementById('barChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Tenis', 'Gorras', 'Aretes', 'Sudaderas'],
+                    datasets: [{ label: 'Frecuencia', data: [15, 50, 70, 80], backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            new Chart(document.getElementById('pieChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['Pizza', 'Tacos', 'Cereal', 'Ensalada'],
+                    datasets: [{ data: [40, 30, 20, 10], backgroundColor: ['#f59e0b', '#ef4444', '#3b82f6', '#10b981'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            initMemoryGame();
+            initQuiz();
+        });
+
+        const memoryData = [
+            { id: 1, text: "Media aritmética" }, { id: 1, text: "Símbolo: x̄" },
+            { id: 2, text: "Mediana" }, { id: 2, text: "Símbolo: x̃" },
+            { id: 3, text: "Moda" }, { id: 3, text: "Dato más frecuente" },
+            { id: 4, text: "Rango" }, { id: 4, text: "Mayor - Menor" }
+        ];
+
+        let flippedCards = [];
+        let matchedPairs = 0;
+
+        function initMemoryGame() {
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            let shuffled = [...memoryData].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((item) => {
+                const card = document.createElement('div');
+                card.classList.add('memory-card');
+                card.innerText = "?";
+                card.addEventListener('click', () => {
+                    if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) return;
+                    card.classList.add('flipped');
+                    card.innerText = item.text;
+                    flippedCards.push({ card, id: item.id });
+
+                    if (flippedCards.length === 2) {
+                        if (flippedCards[0].id === flippedCards[1].id && flippedCards[0].card !== flippedCards[1].card) {
+                            flippedCards.forEach(f => f.card.classList.add('matched'));
+                            matchedPairs++;
+                            document.getElementById('memoryScore').innerText = `Parejas encontradas: ${matchedPairs} / 4`;
+                            flippedCards = [];
+                            if (matchedPairs === 4) setTimeout(() => alert('¡Excelente! ¡Completaste el memorama!'), 200);
+                        } else {
+                            setTimeout(() => {
+                                flippedCards.forEach(f => { f.card.classList.remove('flipped'); f.card.innerText = "?"; });
+                                flippedCards = [];
+                            }, 800);
+                        }
+                    }
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        const quizData = [
+            { question: "¿Cuál es el símbolo que representa a la Media o Promedio?", options: ["x̄", "x̃", "R", "M"], correct: 0 },
+            { question: "¿Cómo se calcula el Rango de un conjunto de datos?", options: ["Sumando todos", "Dividiendo el centro", "Restando mayor menos menor", "Multiplicando frecuencias"], correct: 2 },
+            { question: "Si los datos son 2, 5, 5, 8, 10, ¿cuál es la Moda?", options: ["2", "5", "8", "6"], correct: 1 }
+        ];
+
+        let currentQuiz = 0;
+        let quizScoreCount = 0;
+
+        function initQuiz() {
+            const q = quizData[currentQuiz];
+            document.getElementById('quizQuestion').innerText = `Pregunta ${currentQuiz + 1}: ${q.question}`;
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.addEventListener('click', () => {
+                    const buttons = optionsContainer.querySelectorAll('button');
+                    buttons.forEach(b => b.disabled = true);
+                    if (idx === q.correct) {
+                        btn.classList.add('correct');
+                        quizScoreCount++;
+                    } else {
+                        btn.classList.add('incorrect');
+                        buttons[q.correct].classList.add('correct');
+                    }
+                    setTimeout(() => {
+                        currentQuiz++;
+                        if (currentQuiz < quizData.length) {
+                            initQuiz();
+                        } else {
+                            document.getElementById('quizContainer').innerHTML = `
+                                <div style="text-align: center; font-size: 1.1rem; font-weight: bold; color: var(--primary);">
+                                    ¡Reto Terminado!<br>Calificación: ${quizScoreCount} / ${quizData.length}
+                                </div>
+                                <button class="tab-btn" style="margin: 1rem auto; display: block;" onclick="location.reload()">Reiniciar</button>
+                            `;
+                        }
+                    }, 1400);
+                });
+                optionsContainer.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
